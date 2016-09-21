@@ -9,20 +9,24 @@ public class BinaryTreeConstructor {
 			return null;
 		
 		TreeNode root = new TreeNode(treeList[0]);
-		return constructHelper(treeList, root, 0);
+		constructHelper(treeList, root, 0);
+		return root;
 	}
 	
-	private static TreeNode constructHelper(Integer[] treeList, TreeNode root, int curIndex) {
+	private static void constructHelper(Integer[] treeList, TreeNode root, int curIndex) {
 		if (root == null)
-			return root;
+			return;
 		
-		if (2*curIndex + 1 < treeList.length) {
-			root.left = constructHelper(treeList, root.left, 2*curIndex + 1);
+		Integer leftVal;
+		if (2*curIndex + 1 < treeList.length && (leftVal = treeList[2*curIndex + 1]) != null) {
+			root.left = new TreeNode(leftVal); 
+			constructHelper(treeList, root.left, 2*curIndex + 1);
 		}
-		if (2*curIndex + 2 < treeList.length) {
-			root.right = constructHelper(treeList, root.right, 2*curIndex + 2);
+		Integer rightVal;
+		if (2*curIndex + 2 < treeList.length && (rightVal = treeList[2*curIndex + 2]) != null) {
+			root.right = new TreeNode(rightVal);
+			constructHelper(treeList, root.right, 2*curIndex + 2);
 		}
-		return root;
 	}
 	
 	public static List<Integer> treeToList(TreeNode root) {
@@ -38,17 +42,21 @@ public class BinaryTreeConstructor {
 			TreeNode node = tmpList.removeFirst();
 			retList.add(node == null ? null : node.val);
 			if (node != null) {
+				if (node.left == null && node.right == null)
+					continue;
 				tmpList.addLast(node.left);
 				tmpList.addLast(node.right);
 			}
 		}
+		if (retList.get(retList.size()-1) == null) 
+			retList.remove(retList.size()-1);
 		
 		return retList;
 		
 	}
 	
 	public static void main(String[] args) {
-		Integer[] treeList = new Integer[] {1,2,2,3,3,3,3,4};
+		Integer[] treeList = new Integer[] {1, 2, 3, 3, null, null, 3, 4, null, null, null, 4};
 		TreeNode root = BinaryTreeConstructor.construct(treeList);
 		
 		List<Integer> listToPrint = BinaryTreeConstructor.treeToList(root);
