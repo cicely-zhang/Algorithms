@@ -48,5 +48,29 @@ public class BinaryTreeTraverseTest {
 		
 		assert(genList.equals(retList));
 	}
+	
+	@Test
+	public void testzigZagOrderTraverse() {
+		
+		TreeNode node = new TreeNode(1);
+		node.left = new TreeNode(2);
+		node.right = new TreeNode(3);
+		
+		node.right.left = new TreeNode(4);
+		node.right.right = new TreeNode(5);
+		
+		List<List<Integer>> retList = BinaryTreeTraverse.zigZagTraverse(node);
+		
+		List<List<Integer>> genList = new ArrayList<List<Integer>>();
+		List<Integer> firstLine = Arrays.asList(1);
+		List<Integer> secondLine = Arrays.asList(3,2);
+		List<Integer> thirdLine = Arrays.asList(4,5);
+		
+		genList.add(firstLine);
+		genList.add(secondLine);
+		genList.add(thirdLine);
+		
+		assert(genList.equals(retList));
+	}
 
 }
