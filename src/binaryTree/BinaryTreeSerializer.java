@@ -21,8 +21,11 @@ public class BinaryTreeSerializer {
 				tmpList.addLast(node.right);
 			}
 		}
-		if (retList.get(retList.size()-1) == null) 
-			retList.remove(retList.size()-1);
+		int listSize = retList.size();
+		while (retList.get(listSize - 1) == null) {
+			retList.remove(listSize -1);
+			listSize --;
+		}
 		
 		return retList.toString();
     }
