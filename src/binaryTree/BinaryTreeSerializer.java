@@ -33,48 +33,54 @@ public class BinaryTreeSerializer {
     // Decodes your encoded data to tree.
     public TreeNode deserialize(String data) {
         
-        Integer[] treeList = getTreeList(data);
-        if (treeList == null || treeList.length == 0) 
-			return null;
-		
-		TreeNode root = new TreeNode(treeList[0]);
-		formTreeHelper(treeList, root, 0);
-		return root;
+    	 LinkedList<TreeNode> nodeQueue = parse(data);
+         
+         if (nodeQueue == null || nodeQueue.isEmpty())
+             return null;
+             
+         TreeNode root = nodeQueue.removeFirst();
+         deserializeHelper(nodeQueue, root);
+         return root;
     }
     
-    private static void formTreeHelper(Integer[] treeList, TreeNode root, int curIndex) {
-		if (root == null)
-			return;
-		
-		Integer leftVal;
-		if (2*curIndex + 1 < treeList.length && (leftVal = treeList[2*curIndex + 1]) != null) {
-			root.left = new TreeNode(leftVal); 
-			formTreeHelper(treeList, root.left, 2*curIndex + 1);
-		}
-		Integer rightVal;
-		if (2*curIndex + 2 < treeList.length && (rightVal = treeList[2*curIndex + 2]) != null) {
-			root.right = new TreeNode(rightVal);
-			formTreeHelper(treeList, root.right, 2*curIndex + 2);
-		}
-	}
-	
-	private Integer[] getTreeList(String data) {
-	    
-	    data = data.replace("[", "");
+    private void deserializeHelper(LinkedList<TreeNode> nodeQueue, TreeNode root) {
+        
+        if (root == null)
+            return;
+            
+        TreeNode left = null;
+        TreeNode right = null;
+        
+        if (!nodeQueue.isEmpty())
+            left = nodeQueue.removeFirst();
+        if (!nodeQueue.isEmpty())
+            right = nodeQueue.removeFirst();
+        
+        root.left = left;
+        root.right = right;
+        deserializeHelper(nodeQueue, left);
+        deserializeHelper(nodeQueue, right);
+    }
+    
+    private LinkedList<TreeNode> parse(String data) {
+        LinkedList<TreeNode> nodeQueue = new LinkedList<TreeNode>();
+        data = data.replace("[", "");
         data = data.replace("]", "");
         
-        if ((data = data.trim()).equals(""))
-        		return null;
-            
+        if ((data = data.trim()).equals("")) 
+            return null;
+        
         String[] dataArr = data.split(",");
-        Integer[] treeList = new Integer[dataArr.length];
-        for (int i = 0; i < dataArr.length; i ++) {
-            String ele = dataArr[i].trim();
-            if (ele.equals("null")) 
-                treeList[i] = null;
-            else 
-                treeList[i] = Integer.parseInt(ele);
+        for (String ele: dataArr) {
+            ele = ele.trim();
+            if (ele.equals("null"))
+                nodeQueue.add(null);
+            else {
+                TreeNode node = new TreeNode(Integer.parseInt(ele.trim()));
+                nodeQueue.add(node);
+            }
         }
-        return treeList;
-	}
+        
+        return nodeQueue;
+    }
 }
