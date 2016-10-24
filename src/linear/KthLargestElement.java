@@ -27,11 +27,10 @@ public class KthLargestElement {
         }
     }
     public static int partition(int[] nums, int l, int r) {
-        // 初始化左右指针和pivot
+    	
         int left = l, right = r;
         int pivot = nums[left];
         
-        // 进行partition
         while (left < right) {
             while (left < right && nums[right] >= pivot) {
                 right--;
@@ -43,7 +42,7 @@ public class KthLargestElement {
             nums[right] = nums[left];
         }
         
-        // 返还pivot点到数组里面
+        // è¿”è¿˜pivotç‚¹åˆ°æ•°ç»„é‡Œé�¢
         nums[left] = pivot;
         return left;         
     }

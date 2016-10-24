@@ -3,16 +3,30 @@ package design;
 import java.util.*;
 
 public class MiniTwitter {
+	//To do: how to add the comparator to Tweet class instead
 	
-	private HashMap<Integer, List<Integer>> friendship;
+    private HashMap<Integer, HashSet<Integer>> friendship;
     private HashMap<Integer, List<Tweet>> userTweets;
-    private HashMap<Integer, List<Tweet>> newsFeed;
+    private HashMap<Integer, PriorityQueue<Tweet>> newsFeed;
+    private Comparator<Tweet> comparator;
     
     public MiniTwitter() {
         // initialize your data structure here.
-        friendship = new HashMap<Integer, List<Integer>>();
+        
+        comparator = new Comparator<Tweet>() {
+            public int compare(Tweet t1, Tweet t2) {
+                if (t1 == null)
+                    return -1;
+                else if (t2 == null)
+                    return 1;
+                    
+                return t1.id - t2.id;
+            }
+        };
+        
+        friendship = new HashMap<Integer, HashSet<Integer>>();
         userTweets = new HashMap<Integer, List<Tweet>>();
-        newsFeed = new HashMap<Integer, List<Tweet>>();
+        newsFeed = new HashMap<Integer, PriorityQueue<Tweet>>();
     }
 
     // @param user_id an integer
@@ -25,34 +39,21 @@ public class MiniTwitter {
             userTweets.put(user_id, new ArrayList<Tweet>());
         
         List<Tweet> tweets = userTweets.get(user_id);
-        tweets.add(tweet);
+        tweets.add(0, tweet);
         
         if (!newsFeed.containsKey(user_id))
-            newsFeed.put(user_id, new ArrayList<Tweet>());
+            newsFeed.put(user_id, new PriorityQueue<Tweet>(10, comparator));
             
-        List<Tweet> myNewsFeed = newsFeed.get(user_id);
-        
-        if (myNewsFeed.size() > 10) {
-            myNewsFeed.remove(0);
-            myNewsFeed.add(tweet);
-        }
-        else {
-            myNewsFeed.add(tweet);
-        }
+        PriorityQueue<Tweet> myNewsFeed = newsFeed.get(user_id);
+        myNewsFeed.add(tweet);
         
         if (friendship.containsKey(user_id)) {
             for (Integer friend : friendship.get(user_id)) {
                 if (!newsFeed.containsKey(friend))
-                    newsFeed.put(friend, new ArrayList<Tweet>());
+                    newsFeed.put(friend, new PriorityQueue<Tweet>(10, comparator));
                 
-                List<Tweet> topFeeds = newsFeed.get(friend);
-                if (topFeeds.size() > 10) {
-                    topFeeds.remove(0);
-                    topFeeds.add(tweet);
-                }
-                else {
-                    topFeeds.add(tweet);
-                }
+                PriorityQueue<Tweet> topFeeds = newsFeed.get(friend);
+                topFeeds.add(tweet);
             }
         }
         
@@ -64,7 +65,18 @@ public class MiniTwitter {
     // and sort by timeline
     public List<Tweet> getNewsFeed(int user_id) {
         // Write your code here
-        return newsFeed.get(user_id);
+        if (newsFeed.containsKey(user_id)) {
+            ArrayList<Tweet> myfeeds = new ArrayList<Tweet>();
+            PriorityQueue<Tweet> cloned = new PriorityQueue<Tweet>(newsFeed.get(user_id));
+            int i = 0;
+            while (cloned.size() > 10)
+                cloned.poll();
+            while (cloned.size() > 0)
+                myfeeds.add(0, cloned.poll());
+
+            return myfeeds;
+        }
+        return new ArrayList<Tweet>();
     }
         
     // @param user_id an integer
@@ -78,7 +90,7 @@ public class MiniTwitter {
             if (myTweets.size() < 10)
                 return myTweets;
             else {
-                return userTweets.get(user_id).subList(userTweets.size()-10, userTweets.size());
+                return userTweets.get(user_id).subList(0,10);
             }
         }
         return new ArrayList<Tweet>();
@@ -89,11 +101,24 @@ public class MiniTwitter {
     // from user_id follows to_user_id
     public void follow(int from_user_id, int to_user_id) {
         // Write your code here
-        if (!friendship.containsKey(from_user_id))
-            friendship.put(from_user_id, new ArrayList<Integer>());
+        if (from_user_id == to_user_id)
+            return;
+            
+        if (!friendship.containsKey(to_user_id))
+            friendship.put(to_user_id, new HashSet<Integer>());
         
-        List<Integer> followees = friendship.get(from_user_id);
-        followees.add(to_user_id);
+        HashSet<Integer> followees = friendship.get(to_user_id);
+        if (!followees.contains(from_user_id))
+            followees.add(from_user_id);
+            
+        //add to_user_id's tweets to my news feed
+        if (!newsFeed.containsKey(from_user_id))
+            newsFeed.put(from_user_id, new PriorityQueue<Tweet>(10, comparator));
+            
+        PriorityQueue<Tweet> myfeeds = newsFeed.get(from_user_id);
+        for (Tweet tweet : getTimeline(to_user_id)) {
+            myfeeds.add(tweet);
+        }
     }
 
     // @param from_user_id an integer
@@ -101,10 +126,17 @@ public class MiniTwitter {
     // from user_id unfollows to_user_id
     public void unfollow(int from_user_id, int to_user_id) {
         // Write your code here
-        if (!friendship.containsKey(from_user_id))
+        if (!friendship.containsKey(to_user_id))
             return;
             
-        friendship.get(from_user_id).remove((Integer) to_user_id);
+        friendship.get(to_user_id).remove((Integer) from_user_id);
+        
+        if (newsFeed.containsKey(from_user_id)) {
+            PriorityQueue<Tweet> myfeeds = newsFeed.get(from_user_id);
+            for (Tweet tweet : getTimeline(to_user_id)) {
+                myfeeds.remove(tweet);
+            }
+        }
     }
     
     public static void main(String[] args) {
